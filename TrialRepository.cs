@@ -144,36 +144,49 @@ namespace Assignment3.Repository
 
         //    return cnn.Query(sql1);
         //}
-        public IEnumerable<dynamic> GetTrial()
+        public IDictionary<string, Dictionary<string, List<string>>> GetTrial()
         {
             SqlCommand cmd;
             string connectionString = "Server=localhost;Database=Assignment; user Id=user1; password=user1;Encrypt=false;MultipleActiveResultSets=True";
-            string query = "SELECT DISTINCT Ap_L1Category, AP_L2Category FROM spend_cube_full";
+            string query = "SELECT DISTINCT Ap_L1Category, AP_L2Category,AP_L3Category FROM spend_cube_full";
             SqlConnection cnn = new SqlConnection(connectionString);
             cnn.Open();
             cmd = new SqlCommand(query, cnn);
-            Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
+            Dictionary<string, Dictionary<string, List<string>>> dict = new Dictionary<string, Dictionary<string, List<string>>>();
             SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 string l1 = reader.GetString(0);
                 string l2 = reader.GetString(1);
+                string l3 = reader.GetString(2);
 
                 if (dict.ContainsKey(l1))
                 {
-                    if (!dict[l1].Contains(l2))
+                    var l2dict = dict[l1];
+                    if (l2dict.ContainsKey(l2))
                     {
-                        dict[l1].Add(l2);
+                        var l3list = l2dict[l2];
+                        if (!l3list.Contains(l3))
+                        {
+                            l3list.Add(l3);
+                        }
+                    }
+                    else
+                    {
+                        l2dict[l2] = new List<string> {l3};
                     }
                 }
                 else
                 {
-                    dict[l1] = new List<string> { l2 };
+                    dict[l1] = new Dictionary<string, List<string>>
+                    {
+                        { l2, new List<string> {l3} }
+                    };
+                
                 }
             }
             return dict;
         }
     }
-
 }
 
